@@ -187,12 +187,15 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func parseToken(idToken string) (*jwt.Token, error) {
-	token, _ := jwt.Parse(idToken, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(idToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("There was an error")
+			return nil, fmt.Errorf("Unexpected signing method")
 		}
 		return []byte(cfg.ClientSecret), nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	return token, nil
 }
 
