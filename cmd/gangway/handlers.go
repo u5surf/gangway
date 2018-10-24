@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/MiniProfiler/go/miniprofiler"
 	"github.com/dgrijalva/jwt-go"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -57,7 +58,7 @@ type homeInfo struct {
 func serveTemplate(tmplFile string, data interface{}, w http.ResponseWriter) {
 
 	templatePath := filepath.Join(templatesBase, tmplFile)
-	templateData, err := FSString(false, templatePath)
+	templateData, err := miniprofiler.FSString(false, templatePath)
 	if err != nil {
 		log.Errorf("Failed to find template asset: %s at path: %s", tmplFile, templatePath)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -71,7 +72,7 @@ func serveTemplate(tmplFile string, data interface{}, w http.ResponseWriter) {
 
 func generateKubeConfig(tmplFile string, data interface{}) {
 	templatePath := filepath.Join(templatesBase, tmplFile)
-	templateData, err := FSString(false, templatePath)
+	templateData, err := miniprofiler.FSString(false, templatePath)
 	if err != nil {
 		log.Errorf("Failed to find template asset: %s", tmplFile)
 		return
