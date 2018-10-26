@@ -188,15 +188,28 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 func parseToken(idToken string) (*jwt.Token, error) {
 	token, err := jwt.Parse(idToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method")
-		}
 		return []byte(cfg.ClientSecret), nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return token, nil
+	if token.Valid {
+		return token, nil
+	} else if ve, ok := err.(*jwt.ValidationError); ok {
+		if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+			log.Println("That's not even a token")
+			return nil, err
+		} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+			log.Println("Timing is everything")
+			return nil, err
+		} else {
+			log.Errorf("Couldn't handle this token:%s", err)
+			return nil, err
+		}
+	} else {
+		log.Errorf("Couldn't handle this token:%s", err)
+		return nil, err
+	}
 }
 
 func commandlineHandler(w http.ResponseWriter, r *http.Request) {
